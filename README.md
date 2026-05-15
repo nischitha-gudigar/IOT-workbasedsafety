@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Vitals Simulator
 
 A scenario-driven IoT sensor data simulator for two healthcare and safety POC projects.
@@ -297,3 +298,7 @@ pytest tests/
 ```bash
 deactivate
 ```
+=======
+# IOT-workbasedsafety
+Work based safety for persons in industry
+>>>>>>> ed22a510ce571bcdb1f15e1129b3db3300629aa1
