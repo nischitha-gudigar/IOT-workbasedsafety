@@ -1,0 +1,30 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment config (contains secrets)
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development / internal planning docs (not for public repo)
+CLAUDE.md
+BUGS.md
+SIMULATOR_OVERVIEW.md
+
+# Claude Code internal memory
+.claude/

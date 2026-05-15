@@ -1,0 +1,97 @@
+# personas/welder_factory.yaml
+# Persona: Male factory welder, 40 years old, 10 years experience.
+
+schema_version: "1.0"
+persona_id: welder_factory
+description: "Male factory welder, 40 years old, 10 years experience"
+poc_type: worker_safety
+
+# ---------------------------------------------------------------------------
+# Baseline sensor ranges — healthy person at rest or light activity
+# ---------------------------------------------------------------------------
+baseline:
+  heart_rate:
+    min: 62
+    max: 78
+    unit: bpm
+    sampling_interval_ms: 1000     # one reading per second
+
+  skin_temperature:
+    min: 36.1
+    max: 37.0
+    unit: celsius
+    sampling_interval_ms: 5000     # one reading every 5 seconds
+
+  posture_angle:
+    min: 5
+    max: 20
+    unit: degrees
+    sampling_interval_ms: 500      # two readings per second
+
+  accel_magnitude:
+    min: 0.8
+    max: 1.3
+    unit: g
+    sampling_interval_ms: 500
+
+  accel_x:
+    min: -0.3
+    max: 0.3
+    unit: g
+    sampling_interval_ms: 500
+
+  accel_y:
+    min: -0.3
+    max: 0.3
+    unit: g
+    sampling_interval_ms: 500
+
+  accel_z:
+    min: 0.85
+    max: 1.05
+    unit: g
+    sampling_interval_ms: 500
+
+# ---------------------------------------------------------------------------
+# Safety thresholds — alert fires when these are exceeded
+# ---------------------------------------------------------------------------
+thresholds:
+  heart_rate_high: 110          # bpm — exertion alert
+  temperature_high: 38.0        # celsius — heat stress alert
+  posture_angle_warning: 40     # degrees — awkward posture
+  posture_angle_critical: 55    # degrees — dangerous bend
+  inactivity_seconds: 120       # no movement for this long → alert
+  accel_fall_threshold: 3.5     # g-force spike → fall detection
+
+# ---------------------------------------------------------------------------
+# Noise profile — how noisy are this person's sensor readings
+# ---------------------------------------------------------------------------
+# Values reference noise_intensity_map in simulator_config.yaml
+noise_profile:
+  heart_rate:       gaussian
+  skin_temperature: drift
+  posture_angle:    gaussian
+  accel_magnitude:  gaussian
+  accel_x:          gaussian
+  accel_y:          gaussian
+  accel_z:          gaussian
+
+# ---------------------------------------------------------------------------
+# Sensor correlations — physiological coupling between sensors
+# ---------------------------------------------------------------------------
+# leader_sensor rises → follower_sensor adjusts after lag_seconds
+correlations:
+  - leader_sensor: accel_magnitude
+    follower_sensor: heart_rate
+    coupling_strength: 0.4     # moderate coupling: activity drives HR
+    lag_seconds: 30            # HR responds ~30s after activity increases
+
+  - leader_sensor: heart_rate
+    follower_sensor: skin_temperature
+    coupling_strength: 0.3     # mild coupling: HR elevation slowly warms skin
+    lag_seconds: 120           # temperature lags HR by ~2 minutes
+
+  - leader_sensor: posture_angle
+    follower_sensor: accel_magnitude
+    coupling_strength: 0.5     # bending forward increases accel readings
+    lag_seconds: 2             # near-immediate

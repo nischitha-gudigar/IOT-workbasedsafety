@@ -1,0 +1,100 @@
+# config/simulator_config.yaml
+# -----------------------------
+# Global engine defaults for the Vitals Simulator.
+# All values here can be overridden by persona or scenario YAML where relevant.
+# Change values here to tune engine behaviour without touching Python code.
+
+# ---------------------------------------------------------------------------
+# Engine tick rate
+# ---------------------------------------------------------------------------
+engine:
+  # How often the scenario clock advances (real seconds between ticks).
+  # Lower = smoother phase transitions, higher CPU use.
+  heartbeat_interval_seconds: 0.1
+
+  # Fraction of incoming phase duration used for smooth phase blending.
+  # 0.10 = the last 10% of a phase smoothly interpolates into the next.
+  # Set to 0.0 to disable blending (hard phase cuts).
+  phase_transition_pct: 0.10
+
+  # Real seconds to wait before retrying after a sensor tick error.
+  sensor_error_backoff_seconds: 2.0
+
+  # Maximum backoff cap for repeated sensor errors (real seconds).
+  sensor_max_backoff_seconds: 30.0
+
+# ---------------------------------------------------------------------------
+# Noise intensity map
+# ---------------------------------------------------------------------------
+# Scenario phase YAMLs specify noise_intensity as a label (low/medium/high).
+# This map converts those labels to the dimensionless float that
+# noise models actually use. Tune these to make sensor noise more or less
+# aggressive without editing scenario files.
+noise_intensity_map:
+  low:    0.02   # ±2% of range — very clean signal
+  medium: 0.05   # ±5% of range — noticeable but not distracting
+  high:   0.12   # ±12% of range — clearly noisy, realistic during exertion
+
+# ---------------------------------------------------------------------------
+# Signal generator parameters
+# ---------------------------------------------------------------------------
+# These are passed as constructor kwargs to each SignalGenerator subclass.
+# Add/remove keys to match the constructor signature of each generator.
+signal_params:
+  oscillating_stable:
+    amplitude_fraction: 0.05    # ±5% of range width oscillation
+
+  monotonic_rising:
+    jitter_fraction: 0.01       # ±1% local jitter around the trend line
+
+  monotonic_falling:
+    jitter_fraction: 0.01
+
+  mean_reverting:
+    reversion_speed: 0.15       # pull strength toward midpoint per tick
+    volatility: 0.03            # random step size as fraction of range
+
+  step:
+    jitter_fraction: 0.005      # ±0.5% jitter to avoid flat line appearance
+
+# ---------------------------------------------------------------------------
+# Noise model parameters
+# ---------------------------------------------------------------------------
+# Extra constructor kwargs for noise models beyond the base intensity.
+noise_params:
+  drift:
+    step_sigma_fraction: 0.10   # sigma of each random drift step
+    reversion_rate:      0.02   # pull rate back toward zero per tick
+    max_drift_fraction:  0.25   # cap drift at ±25% of range
+
+  burst:
+    burst_scale_min:           0.5   # minimum spike = 0.5× range width
+    burst_scale_max:           2.0   # maximum spike = 2× range width
+    background_sigma_fraction: 0.05  # background noise when no burst occurs
+
+# ---------------------------------------------------------------------------
+# Condition classification thresholds
+# ---------------------------------------------------------------------------
+# Used by condition_mapper to label each reading as normal/warning/critical.
+# These are default multipliers applied against persona thresholds.
+# A value of 1.0 means use the persona threshold exactly.
+# A value of 0.9 means flag warning at 90% of the persona threshold.
+condition:
+  warning_threshold_fraction:  1.0   # flag warning at exactly the threshold
+  critical_threshold_fraction: 1.15  # flag critical at 115% of threshold
+
+# ---------------------------------------------------------------------------
+# Worker context — threshold tightening by shift day
+# ---------------------------------------------------------------------------
+# Maps shift_day (1–5) to a multiplier applied to all persona thresholds.
+# Day 1 (well-rested) = 1.0 — thresholds unchanged.
+# Day 5 (exhausted) = 0.75 — thresholds 25% tighter.
+worker_context:
+  shift_day_multipliers:
+    1: 1.00
+    2: 0.95
+    3: 0.90
+    4: 0.82
+    5: 0.75
+  # Recent medical leave resets threshold tightening to day 1 level
+  medical_leave_reset_to_day: 1

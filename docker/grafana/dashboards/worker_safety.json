@@ -1,0 +1,352 @@
+{
+  "title": "Worker Safety \u2014 Live Monitor",
+  "uid": "worker-safety-001",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "2s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Heart Rate (bpm)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#f87171"
+          },
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 90
+              },
+              {
+                "color": "red",
+                "value": 110
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-vitals"
+          },
+          "query": "from(bucket: \"iot_poc\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"vitals\")\n  |> filter(fn: (r) => r[\"sensor_name\"] == \"heart_rate\")\n  |> filter(fn: (r) => r[\"poc_type\"] == \"worker_safety\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Skin Temperature (\u00b0C)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#fb923c"
+          },
+          "unit": "celsius",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 37.5
+              },
+              {
+                "color": "red",
+                "value": 38.0
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-vitals"
+          },
+          "query": "from(bucket: \"iot_poc\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"vitals\")\n  |> filter(fn: (r) => r[\"sensor_name\"] == \"skin_temperature\")\n  |> filter(fn: (r) => r[\"poc_type\"] == \"worker_safety\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Posture Angle (degrees)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#a78bfa"
+          },
+          "unit": "degree",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 40
+              },
+              {
+                "color": "red",
+                "value": 55
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-vitals"
+          },
+          "query": "from(bucket: \"iot_poc\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"vitals\")\n  |> filter(fn: (r) => r[\"sensor_name\"] == \"posture_angle\")\n  |> filter(fn: (r) => r[\"poc_type\"] == \"worker_safety\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Acceleration Magnitude (g)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#34d399"
+          },
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 3.5
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-vitals"
+          },
+          "query": "from(bucket: \"iot_poc\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"vitals\")\n  |> filter(fn: (r) => r[\"sensor_name\"] == \"accel_magnitude\")\n  |> filter(fn: (r) => r[\"poc_type\"] == \"worker_safety\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Current Phase",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-vitals"
+          },
+          "query": "from(bucket: \"iot_poc\")\n  |> range(start: -30s)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"vitals\")\n  |> filter(fn: (r) => r[\"sensor_name\"] == \"heart_rate\")\n  |> filter(fn: (r) => r[\"poc_type\"] == \"worker_safety\")\n  |> filter(fn: (r) => r[\"_field\"] == \"phase\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "last"
+          ],
+          "fields": "/^.*$/"
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "text": {"valueSize": 32}
+      }
+    },
+    {
+      "id": 6,
+      "title": "Signal Quality",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 16,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-vitals"
+          },
+          "query": "from(bucket: \"iot_poc\")\n  |> range(start: -30s)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"vitals\")\n  |> filter(fn: (r) => r[\"sensor_name\"] == \"heart_rate\")\n  |> filter(fn: (r) => r[\"poc_type\"] == \"worker_safety\")\n  |> filter(fn: (r) => r[\"_field\"] == \"quality\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "last"
+          ],
+          "fields": "/^.*$/"
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "text": {"valueSize": 32}
+      }
+    },
+    {
+      "id": 7,
+      "title": "Condition",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 16,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-vitals"
+          },
+          "query": "from(bucket: \"iot_poc\")\n  |> range(start: -30s)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"vitals\")\n  |> filter(fn: (r) => r[\"sensor_name\"] == \"heart_rate\")\n  |> filter(fn: (r) => r[\"poc_type\"] == \"worker_safety\")\n  |> filter(fn: (r) => r[\"_field\"] == \"condition\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "last"
+          ],
+          "fields": "/^.*$/"
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "text": {"valueSize": 32}
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_INFLUXDB",
+        "type": "datasource",
+        "pluginId": "influxdb",
+        "hide": 2
+      }
+    ]
+  }
+}

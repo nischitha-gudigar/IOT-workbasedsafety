@@ -1,0 +1,91 @@
+# scenarios/_template.yaml
+# Copy this to create a new scenario. Fill in all required fields.
+
+schema_version: "1.0"
+scenario_id: your_scenario_id         # unique identifier, snake_case
+description: "What this scenario demonstrates"
+persona: your_persona_id              # must match persona_id in a persona YAML
+poc_type: worker_safety               # worker_safety | healthcare
+
+# Total scenario duration in simulated minutes
+total_duration_minutes: 30
+
+# Time compression factor
+# 1  = real time (30 min plays in 30 real minutes)
+# 10 = 30 simulated minutes plays in 3 real minutes
+# 60 = 8 simulated hours plays in 8 real minutes
+compression: 10
+
+# Worker context (only required for worker_safety scenarios)
+worker_context:
+  shift_day: 1                 # 1–5 (1 = well-rested, 5 = exhausted)
+  consecutive_days: 1
+  recent_medical_leave: false
+
+# ---------------------------------------------------------------------------
+# Phases
+# start_minute and end_minute are in SIMULATED minutes.
+# Phases must be contiguous (end of one = start of next) and non-overlapping.
+# ---------------------------------------------------------------------------
+phases:
+  - name: phase_one
+    start_minute: 0
+    end_minute: 15
+    sensors:
+      heart_rate:
+        min: 65
+        max: 80
+        # behavior options: oscillating_stable | monotonic_rising | monotonic_falling
+        #                   mean_reverting | step
+        behavior: oscillating_stable
+      # Add more sensors matching those in your persona's baseline block
+    # noise_intensity: low | medium | high
+    noise_intensity: low
+    # activity (optional, for worker_safety): walking | standing | bending | idle
+    activity: walking
+
+  - name: phase_two
+    start_minute: 15
+    end_minute: 30
+    sensors:
+      heart_rate:
+        min: 80
+        max: 110
+        behavior: monotonic_rising
+    noise_intensity: medium
+    activity: walking
+
+# ---------------------------------------------------------------------------
+# Events — scripted moments at specific simulated times
+# ---------------------------------------------------------------------------
+events: []
+# Example events:
+#
+# - at_minute: 20
+#   type: posture_spike              # any descriptive name
+#   description: "Worker bends suddenly"
+#   overrides:
+#     posture_angle: 65              # value to inject on the named sensor
+#   duration_seconds: 30            # real seconds this override lasts
+#
+# - at_minute: 25
+#   type: fall
+#   description: "Worker falls"
+#   overrides:
+#     accel_magnitude: 4.5
+#   duration_seconds: 3
+#
+# - at_minute: 10
+#   type: tachycardia_onset
+#   description: "Sudden HR spike"
+#   overrides:
+#     heart_rate: 140
+#   duration_seconds: 20
+#
+# Fault events (sensor failure):
+# - at_minute: 18
+#   type: sensor_fault
+#   fault_type: dropout              # dropout | flatline | spike | noise_burst
+#   sensor: heart_rate
+#   duration_seconds: 15
+#   fault_factor: 3.0               # used for spike/noise_burst only

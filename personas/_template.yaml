@@ -1,0 +1,88 @@
+# personas/_template.yaml
+# Copy this file to create a new persona. Fill in all required fields.
+# Optional fields are marked with (optional).
+
+schema_version: "1.0"
+persona_id: your_persona_id          # unique identifier, snake_case
+description: "Brief description of who this person is"
+poc_type: worker_safety              # worker_safety | healthcare
+
+# ---------------------------------------------------------------------------
+# Baseline sensor ranges — healthy person at rest
+# Add only sensors that apply to this persona.
+# ---------------------------------------------------------------------------
+baseline:
+  heart_rate:
+    min: 60
+    max: 80
+    unit: bpm
+    sampling_interval_ms: 1000
+
+  # For worker_safety personas — add these:
+  # skin_temperature:
+  #   min: 36.0
+  #   max: 37.2
+  #   unit: celsius
+  #   sampling_interval_ms: 5000
+  #
+  # posture_angle:
+  #   min: 5
+  #   max: 20
+  #   unit: degrees
+  #   sampling_interval_ms: 500
+  #
+  # accel_magnitude:
+  #   min: 0.8
+  #   max: 1.3
+  #   unit: g
+  #   sampling_interval_ms: 500
+
+  # For healthcare personas — add these:
+  # spo2:
+  #   min: 96
+  #   max: 99
+  #   unit: percent
+  #   sampling_interval_ms: 2000
+  #
+  # heart_rate_variability:
+  #   min: 30
+  #   max: 70
+  #   unit: ms
+  #   sampling_interval_ms: 5000
+
+# ---------------------------------------------------------------------------
+# Thresholds — alert fires when these are exceeded
+# ---------------------------------------------------------------------------
+thresholds:
+  heart_rate_high: 110         # bpm
+
+  # Worker safety:
+  # temperature_high: 38.0
+  # posture_angle_warning: 40
+  # posture_angle_critical: 55
+  # inactivity_seconds: 120
+  # accel_fall_threshold: 3.5
+
+  # Healthcare:
+  # heart_rate_low: 50
+  # spo2_low: 93
+  # hrv_low: 20
+
+# ---------------------------------------------------------------------------
+# Noise profile — one entry per sensor in baseline above
+# Values: gaussian | drift | burst | quantization
+# ---------------------------------------------------------------------------
+noise_profile:
+  heart_rate: gaussian
+
+# ---------------------------------------------------------------------------
+# Sensor correlations (optional)
+# Describe physiological coupling between sensors.
+# ---------------------------------------------------------------------------
+correlations: []
+# Example:
+# correlations:
+#   - leader_sensor: accel_magnitude
+#     follower_sensor: heart_rate
+#     coupling_strength: 0.4
+#     lag_seconds: 30

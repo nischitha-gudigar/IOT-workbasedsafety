@@ -1,0 +1,60 @@
+# personas/cardiac_patient.yaml
+# Persona: Female, 65 years old, known cardiac risk, rural patient.
+
+schema_version: "1.0"
+persona_id: cardiac_patient
+description: "Female, 65 years old, known cardiac risk, remote monitoring patient"
+poc_type: healthcare
+
+# ---------------------------------------------------------------------------
+# Baseline sensor ranges — healthy resting state for this patient
+# ---------------------------------------------------------------------------
+baseline:
+  heart_rate:
+    min: 58
+    max: 75
+    unit: bpm
+    sampling_interval_ms: 1000
+
+  spo2:
+    min: 96
+    max: 99
+    unit: percent
+    sampling_interval_ms: 2000
+
+  heart_rate_variability:
+    min: 35
+    max: 65
+    unit: ms
+    sampling_interval_ms: 5000
+
+# ---------------------------------------------------------------------------
+# Clinical thresholds — alert fires when these are exceeded/undershot
+# ---------------------------------------------------------------------------
+thresholds:
+  heart_rate_high: 100       # bpm — tachycardia boundary
+  heart_rate_low: 50         # bpm — bradycardia boundary
+  spo2_low: 93               # percent — low oxygen alarm
+  hrv_low: 20                # ms — very low HRV alarm (cardiac stress marker)
+
+# ---------------------------------------------------------------------------
+# Noise profile
+# ---------------------------------------------------------------------------
+noise_profile:
+  heart_rate:             gaussian
+  spo2:                   quantization   # pulse oximeter rounds to 1%
+  heart_rate_variability: gaussian
+
+# ---------------------------------------------------------------------------
+# Sensor correlations
+# ---------------------------------------------------------------------------
+correlations:
+  - leader_sensor: heart_rate
+    follower_sensor: spo2
+    coupling_strength: -0.25   # negative: higher HR → slight SpO2 drop under exertion
+    lag_seconds: 60
+
+  - leader_sensor: heart_rate
+    follower_sensor: heart_rate_variability
+    coupling_strength: -0.4    # negative: tachycardia → lower HRV (less variation)
+    lag_seconds: 10

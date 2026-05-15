@@ -1,0 +1,78 @@
+# scenarios/worker/fall_incident.yaml
+# Short scenario focused on a fall event — good for a quick demo.
+
+schema_version: "1.0"
+scenario_id: fall_incident
+description: "Worker has a sudden fall mid-shift after a posture warning"
+persona: welder_factory
+poc_type: worker_safety
+
+total_duration_minutes: 30
+compression: 10              # 30 simulated minutes plays in 3 real minutes
+
+worker_context:
+  shift_day: 3
+  consecutive_days: 3
+  recent_medical_leave: false
+
+phases:
+  - name: normal_work
+    start_minute: 0
+    end_minute: 15
+    sensors:
+      heart_rate:
+        min: 68
+        max: 82
+        behavior: oscillating_stable
+      skin_temperature:
+        min: 36.3
+        max: 36.9
+        behavior: oscillating_stable
+      posture_angle:
+        min: 10
+        max: 25
+        behavior: oscillating_stable
+      accel_magnitude:
+        min: 0.9
+        max: 1.2
+        behavior: oscillating_stable
+    noise_intensity: low
+    activity: walking
+
+  - name: increasing_strain
+    start_minute: 15
+    end_minute: 30
+    sensors:
+      heart_rate:
+        min: 82
+        max: 100
+        behavior: monotonic_rising
+      skin_temperature:
+        min: 36.7
+        max: 37.4
+        behavior: monotonic_rising
+      posture_angle:
+        min: 25
+        max: 48
+        behavior: monotonic_rising
+      accel_magnitude:
+        min: 1.0
+        max: 1.5
+        behavior: oscillating_stable
+    noise_intensity: medium
+    activity: bending
+
+events:
+  - at_minute: 20
+    type: posture_spike
+    description: "Unsafe bend reaching for object on ground"
+    overrides:
+      posture_angle: 62
+    duration_seconds: 30
+
+  - at_minute: 27
+    type: fall
+    description: "Worker loses footing and falls"
+    overrides:
+      accel_magnitude: 4.8
+    duration_seconds: 2

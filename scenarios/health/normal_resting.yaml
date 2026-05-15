@@ -1,0 +1,32 @@
+# scenarios/health/normal_resting.yaml
+# Patient in normal resting state — no events. Baseline verification.
+
+schema_version: "1.0"
+scenario_id: normal_resting
+description: "Patient at home, resting normally, all vitals within range"
+persona: cardiac_patient
+poc_type: healthcare
+
+total_duration_minutes: 20
+compression: 5
+
+phases:
+  - name: resting
+    start_minute: 0
+    end_minute: 20
+    sensors:
+      heart_rate:
+        min: 58
+        max: 74
+        behavior: oscillating_stable
+      spo2:
+        min: 97
+        max: 99
+        behavior: oscillating_stable
+      heart_rate_variability:
+        min: 38
+        max: 62
+        behavior: oscillating_stable
+    noise_intensity: low
+
+events: []

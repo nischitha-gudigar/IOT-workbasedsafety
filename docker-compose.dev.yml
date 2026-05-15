@@ -1,0 +1,114 @@
+# docker-compose.dev.yml
+# -------------------------
+# Developer convenience stack for testing the simulator locally.
+# This is NOT the production setup — each POC project has its own compose.
+#
+# Stack: Simulator + MQTT ingestion + Mosquitto + Telegraf + InfluxDB + Grafana
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml logs -f simulator ingestion
+
+version: "3.8"
+
+services:
+
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - --persona
+      - personas/welder_factory.yaml
+      - --scenario
+      - scenarios/worker/fatigue_escalation.yaml
+      - --compression
+      - "60"
+      - --demo
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_TOPIC_PREFIX: iots
+      LOG_LEVEL: INFO
+      DEMO_API_PORT: 8000
+    depends_on:
+      - mosquitto
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["python", "run_ingestion.py"]
+    command:
+      - --config
+      - config/mqtt_config.yaml
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_TOPIC_PREFIX: iots
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: my-token
+      INFLUXDB_ORG: iot_org
+      INFLUXDB_BUCKET: iot_poc
+      LOG_LEVEL: INFO
+    depends_on:
+      - mosquitto
+      - influxdb
+    volumes:
+      - ingestion_logs:/app/logs
+    restart: unless-stopped
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./docker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword
+      DOCKER_INFLUXDB_INIT_ORG: iot_org
+      DOCKER_INFLUXDB_INIT_BUCKET: iot_poc
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    restart: unless-stopped
+
+  telegraf:
+    image: telegraf:1.30
+    depends_on:
+      - mosquitto
+      - influxdb
+    volumes:
+      - ./docker/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3002:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+volumes:
+  influxdb_data:
+  grafana_data:
+  ingestion_logs:

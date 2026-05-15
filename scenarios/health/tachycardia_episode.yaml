@@ -1,0 +1,99 @@
+# scenarios/health/tachycardia_episode.yaml
+# Patient at rest, sudden tachycardia onset, peaks, recovers.
+
+schema_version: "1.0"
+scenario_id: tachycardia_episode
+description: "Patient at rest, sudden tachycardia onset, peaks, recovers over 30 minutes"
+persona: cardiac_patient
+poc_type: healthcare
+
+total_duration_minutes: 30
+compression: 10              # 30 simulated minutes plays in 3 real minutes
+
+phases:
+  - name: resting_normal
+    start_minute: 0
+    end_minute: 12
+    sensors:
+      heart_rate:
+        min: 60
+        max: 72
+        behavior: oscillating_stable
+      spo2:
+        min: 97
+        max: 99
+        behavior: oscillating_stable
+      heart_rate_variability:
+        min: 40
+        max: 62
+        behavior: oscillating_stable
+    noise_intensity: low
+
+  - name: onset
+    start_minute: 12
+    end_minute: 16
+    sensors:
+      heart_rate:
+        min: 75
+        max: 105
+        behavior: monotonic_rising
+      spo2:
+        min: 96
+        max: 98
+        behavior: oscillating_stable
+      heart_rate_variability:
+        min: 25
+        max: 45
+        behavior: monotonic_falling
+    noise_intensity: medium
+
+  - name: tachycardia
+    start_minute: 16
+    end_minute: 24
+    sensors:
+      heart_rate:
+        min: 118
+        max: 145
+        behavior: mean_reverting
+      spo2:
+        min: 93
+        max: 96
+        behavior: oscillating_stable
+      heart_rate_variability:
+        min: 15
+        max: 28
+        behavior: oscillating_stable
+    noise_intensity: medium
+
+  - name: recovery
+    start_minute: 24
+    end_minute: 30
+    sensors:
+      heart_rate:
+        min: 70
+        max: 85
+        behavior: monotonic_falling
+      spo2:
+        min: 96
+        max: 99
+        behavior: monotonic_rising
+      heart_rate_variability:
+        min: 30
+        max: 55
+        behavior: monotonic_rising
+    noise_intensity: low
+
+events:
+  - at_minute: 16
+    type: tachycardia_onset
+    description: "Sudden tachycardia episode begins"
+    overrides:
+      heart_rate: 138
+    duration_seconds: 20
+
+  - at_minute: 22
+    type: low_spo2
+    description: "Oxygen drops during peak tachycardia"
+    overrides:
+      spo2: 91
+    duration_seconds: 60

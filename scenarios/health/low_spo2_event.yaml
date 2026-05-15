@@ -1,0 +1,74 @@
+# scenarios/health/low_spo2_event.yaml
+# Patient has a gradual oxygen desaturation episode.
+
+schema_version: "1.0"
+scenario_id: low_spo2_event
+description: "Patient's SpO2 drops gradually, triggers alarm, slowly recovers"
+persona: cardiac_patient
+poc_type: healthcare
+
+total_duration_minutes: 25
+compression: 10
+
+phases:
+  - name: normal_resting
+    start_minute: 0
+    end_minute: 8
+    sensors:
+      heart_rate:
+        min: 60
+        max: 74
+        behavior: oscillating_stable
+      spo2:
+        min: 97
+        max: 99
+        behavior: oscillating_stable
+      heart_rate_variability:
+        min: 38
+        max: 60
+        behavior: oscillating_stable
+    noise_intensity: low
+
+  - name: desaturation
+    start_minute: 8
+    end_minute: 18
+    sensors:
+      heart_rate:
+        min: 72
+        max: 92
+        behavior: monotonic_rising     # compensatory HR rise
+      spo2:
+        min: 88
+        max: 95
+        behavior: monotonic_falling    # SpO2 dropping
+      heart_rate_variability:
+        min: 20
+        max: 40
+        behavior: monotonic_falling
+    noise_intensity: medium
+
+  - name: recovery
+    start_minute: 18
+    end_minute: 25
+    sensors:
+      heart_rate:
+        min: 65
+        max: 80
+        behavior: monotonic_falling
+      spo2:
+        min: 95
+        max: 98
+        behavior: monotonic_rising
+      heart_rate_variability:
+        min: 30
+        max: 55
+        behavior: monotonic_rising
+    noise_intensity: low
+
+events:
+  - at_minute: 13
+    type: low_spo2
+    description: "SpO2 drops to critically low level"
+    overrides:
+      spo2: 88
+    duration_seconds: 45

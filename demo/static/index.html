@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vitals Simulator — Demo Control</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           background: #0f1117; color: #e2e8f0;
+           height: 100vh;
+           display: flex; flex-direction: column;
+           padding: 16px 20px 12px; gap: 12px; }
+
+    /* ── Header ── */
+    .header { flex-shrink: 0; }
+    h1 { font-size: 26px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .subtitle { font-size: 14px; color: #64748b; margin-top: 3px; }
+
+    /* ── Main grid ── */
+    .grid { display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 14px;
+            flex: 1;
+            min-height: 0; }
+
+    /* ── Cards ── */
+    .card { background: #1e2430; border: 1px solid #2d3748; border-radius: 14px;
+            padding: 22px 26px;
+            display: flex; flex-direction: column;
+            min-height: 0; overflow: hidden; }
+    .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: 0.1em; color: #475569; margin-bottom: 16px;
+                  flex-shrink: 0; }
+
+    /* ── Stat rows ── */
+    .stat { display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 0; border-bottom: 1px solid #1a2030; flex-shrink: 0; }
+    .stat:last-of-type { border-bottom: none; }
+    .stat-label { font-size: 14px; color: #64748b; }
+    .stat-value { font-size: 18px; font-weight: 600; color: #e2e8f0;
+                  font-variant-numeric: tabular-nums; text-align: right; }
+
+    /* ── Progress bar ── */
+    .progress-bar { background: #1a2030; border-radius: 99px; height: 8px;
+                    overflow: hidden; margin: 12px 0 4px; flex-shrink: 0; }
+    .progress-fill { background: #3b82f6; height: 100%; border-radius: 99px;
+                     transition: width 0.5s ease; }
+
+    /* ── Badges ── */
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 99px;
+             font-size: 14px; font-weight: 700; }
+    .badge-green  { background: #052e16; color: #4ade80; }
+    .badge-yellow { background: #422006; color: #fbbf24; }
+    .badge-red    { background: #450a0a; color: #f87171; }
+    .badge-gray   { background: #1f2937; color: #9ca3af; }
+
+    /* ── Form controls ── */
+    label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
+    select, input[type="text"], input[type="number"] {
+      width: 100%; background: #0f1117; border: 1px solid #374151;
+      color: #e2e8f0; padding: 14px 14px; border-radius: 10px;
+      font-size: 15px; margin-bottom: 14px;
+      appearance: none; -webkit-appearance: none;
+    }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+             background-repeat: no-repeat; background-position: right 14px center;
+             padding-right: 36px; }
+    select:focus, input[type="text"]:focus, input[type="number"]:focus { outline: 2px solid #3b82f6; border-color: transparent; }
+
+    /* ── Buttons ── */
+    .btn { display: inline-flex; align-items: center; justify-content: center;
+           padding: 14px 20px; border-radius: 10px; font-size: 16px; font-weight: 600;
+           border: none; cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+           width: 100%; flex-shrink: 0; }
+    .btn:hover  { opacity: 0.88; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary  { background: #3b82f6; color: #fff; }
+    .btn-warning  { background: #f59e0b; color: #000; }
+    .btn-danger   { background: #ef4444; color: #fff; }
+    .btn-neutral  { background: #374151; color: #e2e8f0; }
+
+    /* ── Speed buttons ── */
+    .speed-section { margin-top: auto; padding-top: 16px; flex-shrink: 0; }
+    .speed-label { font-size: 12px; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: 0.1em; color: #475569; margin-bottom: 10px; }
+    .speed-group { display: flex; gap: 8px; }
+    .speed-btn { flex: 1; background: #1a2030; color: #94a3b8;
+                 border: 1px solid #2d3748; padding: 12px 4px;
+                 border-radius: 10px; font-size: 15px; font-weight: 600;
+                 cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+    .speed-btn.active { background: #1d4ed8; color: #fff; border-color: #3b82f6; }
+    .speed-btn:hover:not(.active) { background: #2d3748; color: #e2e8f0; }
+
+    /* ── Duration override row ── */
+    .duration-row { flex-shrink: 0; margin-bottom: 12px; }
+    .duration-row label { margin-bottom: 6px; }
+    .duration-row input { margin-bottom: 4px; }
+    .duration-msg { font-size: 12px; min-height: 16px; margin-bottom: 4px; }
+    .duration-msg.warn  { color: #fbbf24; }
+    .duration-msg.error { color: #f87171; }
+
+    /* ── Event buttons grid ── */
+    .event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+                  flex: 1; align-content: start; overflow-y: auto;
+                  min-height: 0; }
+    .event-grid .btn { margin: 0; font-size: 15px; padding: 16px 12px; }
+    .event-empty { color: #475569; font-size: 14px; grid-column: 1 / -1; padding: 8px 0; }
+
+    /* ── Custom event row ── */
+    .custom-row { flex-shrink: 0; margin-top: 14px; display: flex; gap: 10px; align-items: flex-end; }
+    .custom-row .field-wrap { flex: 1; }
+    .custom-row label { margin-bottom: 6px; }
+    .custom-row input { margin-bottom: 0; }
+    .custom-row .btn { width: auto; padding: 14px 20px; white-space: nowrap; flex-shrink: 0; font-size: 15px; }
+
+    /* ── Event log ── */
+    #log { flex: 1; background: #0a0d13; border: 1px solid #1e2430; border-radius: 10px;
+           padding: 12px 14px; font-family: "JetBrains Mono", "Fira Code", monospace;
+           font-size: 13px; color: #64748b; overflow-y: auto; min-height: 0; }
+    #log .entry { padding: 5px 0; border-bottom: 1px solid #111827; line-height: 1.6; }
+    #log .entry:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Vitals Simulator</h1>
+  <p class="subtitle">Demo Control Panel &mdash; Health &amp; Safety IoT Simulator</p>
+</div>
+
+<div class="grid">
+
+  <!-- Status card -->
+  <div class="card">
+    <div class="card-title">Status</div>
+    <div class="stat">
+      <span class="stat-label">Scenario</span>
+      <span class="stat-value" id="stat-scenario">&mdash;</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Persona</span>
+      <span class="stat-value" id="stat-persona">&mdash;</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Phase</span>
+      <span class="stat-value" id="stat-phase">&mdash;</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Engine</span>
+      <span class="stat-value" id="stat-running"><span class="badge badge-gray">Idle</span></span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Elapsed</span>
+      <span class="stat-value" id="stat-elapsed">&mdash;</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Messages sent</span>
+      <span class="stat-value" id="stat-seq">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Compression</span>
+      <span class="stat-value" id="stat-compression">&mdash;</span>
+    </div>
+  </div>
+
+  <!-- Load scenario card -->
+  <div class="card">
+    <div class="card-title">Load Scenario</div>
+    <label>Persona file</label>
+    <select id="sel-persona"><option value="">Loading...</option></select>
+    <label>Scenario file</label>
+    <select id="sel-scenario"><option value="">Loading...</option></select>
+    <button class="btn btn-primary" id="btn-load">Load Scenario</button>
+    <div class="speed-section">
+      <div class="speed-label">Speed</div>
+      <div class="speed-group" id="speed-group">
+        <button class="speed-btn" data-speed="1">1x</button>
+        <button class="speed-btn" data-speed="5">5x</button>
+        <button class="speed-btn" data-speed="10">10x</button>
+        <button class="speed-btn active" data-speed="60">60x</button>
+        <button class="speed-btn" data-speed="120">120x</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Events card -->
+  <div class="card">
+    <div class="card-title">Trigger Events</div>
+    <div class="duration-row">
+      <label for="event-duration">Override duration <span style="color:#475569;font-weight:400">(real seconds — leave blank to use scenario default)</span></label>
+      <input type="number" id="event-duration" placeholder="e.g. 30" min="1" step="1" />
+      <div id="duration-msg" class="duration-msg"></div>
+    </div>
+    <div class="event-grid" id="event-grid">
+      <p class="event-empty">Loading scenario&hellip;</p>
+    </div>
+    <div class="custom-row">
+      <div class="field-wrap">
+        <label>Custom event type</label>
+        <input type="text" id="custom-event" placeholder="event_type_name" />
+      </div>
+      <button class="btn btn-neutral" onclick="triggerCustom()">Trigger</button>
+    </div>
+  </div>
+
+  <!-- Event log -->
+  <div class="card">
+    <div class="card-title">Event Log</div>
+    <div id="log"><div class="entry" style="color:#374151">Waiting for engine&hellip;</div></div>
+  </div>
+
+</div>
+
+<script>
+  const API = '';
+  let pollInterval = null;
+  let _lastEventSig = '';
+
+  const DANGER_EVENTS = new Set(['fall', 'cardiac_arrest', 'collapse']);
+
+  function renderEventButtons(events) {
+    const sig = JSON.stringify(events);
+    if (sig === _lastEventSig) return;
+    _lastEventSig = sig;
+    const grid = document.getElementById('event-grid');
+    if (!events || !events.length) {
+      grid.innerHTML = '<p class="event-empty">No triggerable events in this scenario</p>';
+      return;
+    }
+    grid.innerHTML = events.map(e => {
+      const cls = DANGER_EVENTS.has(e.type) ? 'btn-danger' : 'btn-warning';
+      const label = e.description.length > 24 ? e.description.slice(0, 22) + '…' : e.description;
+      return `<button class="btn ${cls}" onclick="trigger('${e.type}')" title="${e.description}">${label}</button>`;
+    }).join('');
+  }
+
+  async function fetchStatus() {
+    try {
+      const r = await fetch(API + '/status');
+      if (!r.ok) return;
+      const s = await r.json();
+
+      document.getElementById('stat-scenario').textContent   = s.scenario_id || '—';
+      document.getElementById('stat-persona').textContent    = s.persona_id  || '—';
+      document.getElementById('stat-phase').textContent      = s.current_phase || '—';
+      document.getElementById('stat-elapsed').textContent    =
+        s.elapsed_sim_minutes ? `${s.elapsed_sim_minutes.toFixed(1)} / ${s.total_sim_minutes} min` : '—';
+      document.getElementById('stat-seq').textContent        = s.sequence_number || 0;
+      document.getElementById('stat-compression').textContent = s.compression ? `${s.compression}x` : '—';
+      document.getElementById('progress-fill').style.width   = (s.progress_pct || 0) + '%';
+
+      const runEl = document.getElementById('stat-running');
+      runEl.innerHTML = s.running
+        ? '<span class="badge badge-green">Running</span>'
+        : '<span class="badge badge-gray">Idle</span>';
+
+      renderEventButtons(s.available_events || []);
+    } catch (e) {
+      log('Status error: ' + e.message, 'error');
+    }
+  }
+
+  async function loadScenario() {
+    const persona  = document.getElementById('sel-persona').value;
+    const scenario = document.getElementById('sel-scenario').value;
+    if (!persona || !scenario) { log('Select a persona and scenario first', 'warn'); return; }
+    try {
+      const r = await fetch(API + '/scenario/load', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ persona_path: persona, scenario_path: scenario })
+      });
+      const d = await r.json();
+      if (r.ok) {
+        log(d.message || ('Scenario loaded: ' + scenario));
+        _lastEventSig = '';
+        await fetchStatus();
+      } else {
+        log('Error ' + r.status + ': ' + detailMsg(d.detail), 'error');
+      }
+    } catch (e) { log('Network error: ' + e.message, 'error'); }
+  }
+
+  function parseDuration() {
+    const raw = document.getElementById('event-duration').value.trim();
+    const msgEl = document.getElementById('duration-msg');
+    msgEl.textContent = '';
+    msgEl.className = 'duration-msg';
+
+    if (raw === '') return null;  // blank = use YAML default
+
+    const val = parseFloat(raw);
+    if (isNaN(val) || val <= 0) {
+      msgEl.textContent = 'Must be a positive number, or leave blank for scenario default.';
+      msgEl.className = 'duration-msg error';
+      return undefined;  // undefined = validation failed, block trigger
+    }
+    if (val > 300) {
+      msgEl.textContent = `${val}s is a long override — confirm this is intentional.`;
+      msgEl.className = 'duration-msg warn';
+    }
+    return val;
+  }
+
+  async function trigger(eventType) {
+    const duration = parseDuration();
+    if (duration === undefined) return;  // validation failed
+
+    const body = { event_type: eventType };
+    if (duration !== null) body.duration_seconds = duration;
+
+    try {
+      const r = await fetch(API + '/event/trigger', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      if (r.ok) {
+        log('Triggered: ' + eventType + (duration !== null ? ` (${duration}s)` : ''));
+      } else {
+        log('Error ' + r.status + ': ' + detailMsg(d.detail), 'error');
+      }
+    } catch (e) { log('Network error: ' + e.message, 'error'); }
+  }
+
+  function triggerCustom() {
+    const v = document.getElementById('custom-event').value.trim();
+    if (v) trigger(v);
+  }
+
+  async function setSpeed(speed) {
+    try {
+      const r = await fetch(API + '/compression/set', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ compression: parseFloat(speed) })
+      });
+      const d = await r.json();
+      if (r.ok) {
+        document.querySelectorAll('.speed-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.speed == speed);
+        });
+        log('Speed set to ' + speed + 'x');
+      } else {
+        log('Speed error ' + r.status + ': ' + detailMsg(d.detail), 'error');
+      }
+    } catch (e) { log('Speed error: ' + e.message, 'error'); }
+  }
+
+  const scenarioPersonaMap = {};
+
+  function autoSelectPersona() {
+    const ss = document.getElementById('sel-scenario');
+    const ps = document.getElementById('sel-persona');
+    const required = scenarioPersonaMap[ss.value];
+    if (!required) return;
+    const match = Array.from(ps.options).find(o => o.value.endsWith(`/${required}.yaml`));
+    if (match) ps.value = match.value;
+  }
+
+  async function loadLists() {
+    try {
+      const [pr, sr] = await Promise.all([
+        fetch(API + '/personas').then(r => r.json()),
+        fetch(API + '/scenarios').then(r => r.json()),
+      ]);
+
+      const ps = document.getElementById('sel-persona');
+      ps.innerHTML = pr.personas.map(p => `<option value="${p}">${p}</option>`).join('');
+
+      const ss = document.getElementById('sel-scenario');
+      ss.innerHTML = sr.scenarios.map(s => {
+        scenarioPersonaMap[s.path] = s.persona_required;
+        return `<option value="${s.path}">${s.path}</option>`;
+      }).join('');
+
+      autoSelectPersona();
+    } catch (e) { log('Could not load file lists: ' + e.message, 'error'); }
+  }
+
+  function detailMsg(detail) {
+    if (!detail) return 'Unknown error';
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) return detail.map(e => e.msg || JSON.stringify(e)).join('; ');
+    return JSON.stringify(detail);
+  }
+
+  function log(msg, level) {
+    const el = document.getElementById('log');
+    const color = level === 'error' ? '#f87171' : level === 'warn' ? '#fbbf24' : '#4ade80';
+    const ts = new Date().toTimeString().slice(0, 8);
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    entry.innerHTML = `<span style="color:#374151">${ts}</span> <span style="color:${color}">${msg}</span>`;
+    el.insertBefore(entry, el.firstChild);
+    while (el.children.length > 50) el.removeChild(el.lastChild);
+  }
+
+  document.getElementById('speed-group').addEventListener('click', e => {
+    if (e.target.dataset.speed) setSpeed(e.target.dataset.speed);
+  });
+
+  document.getElementById('sel-scenario').addEventListener('change', autoSelectPersona);
+  document.getElementById('btn-load').addEventListener('click', loadScenario);
+  document.getElementById('custom-event').addEventListener('keydown', e => {
+    if (e.key === 'Enter') triggerCustom();
+  });
+
+  loadLists();
+  fetchStatus();
+  pollInterval = setInterval(fetchStatus, 2000);
+</script>
+
+</body>
+</html>
